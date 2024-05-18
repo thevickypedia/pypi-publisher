@@ -1,6 +1,6 @@
 # This workflow will upload a Python Package using Twine when a release is created
 
-name: pypi-publish
+name: pypi-publisher
 description: GitHub action to upload Python distribution packages to PyPI
 inputs:
   user:
@@ -42,8 +42,8 @@ inputs:
     required: false
     default: 'false'
 branding:
-  color: orange
-  icon: upload-cloud
+  color: gray-dark
+  icon: anchor
 
 # Controls when the workflow will run
 runs:

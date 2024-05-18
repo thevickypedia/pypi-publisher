@@ -1,10 +1,10 @@
-# Pypi Publish
+# Pypi Publisher
 
-`pypi-publish` is a GitHub action designed to upload python projects to Pypi repository.
+`pypi-publisher` is a GitHub action designed to upload python projects to Pypi repository.
 
 ## Install Guide
 
-#### Add `pypi-publish` action to your build workflow
+#### Add `pypi-publisher` action to your build workflow
 
 - In your GitHub repository, select the Actions tab and either add or edit a workflow.
 - Copy and paste the yaml into your workflow.
@@ -14,7 +14,7 @@
 Copy & paste the following workflow definition into your project `.github/workflows/pypi-publish.yml`
 
 ```yaml
-name: Pypi Publish
+name: Pypi Publisher
 
 on:
   workflow_dispatch:
@@ -22,13 +22,11 @@ on:
     types: [ published ]
 
 jobs:
-  pypi-publish:
+  pypi-publisher:
     runs-on: ubuntu-latest
     steps:
-      - uses: thevickypedia/pypi-publish@v1
+      - uses: thevickypedia/pypi-publisher@v1
 ```
-
-- Commit your changes and run the workflow manually.
 
 ## License & copyright
 
