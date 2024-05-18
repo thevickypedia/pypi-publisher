@@ -99,7 +99,8 @@ runs:
         import pathlib
         import sys
 
-        packages_dir = pathlib.Path(${{ inputs.packages-dir }}).resolve().absolute()
+        distro = "${{ inputs.packages-dir }}"
+        packages_dir = pathlib.Path(distro).resolve().absolute()
 
         print('Showing hash values of files to be uploaded:')
 
