@@ -6,11 +6,10 @@ inputs:
   user:
     description: PyPI user
     required: false
-    default: ${{ secrets.PYPI_USER }} || __token__
+    default: __token__
   token:
     description: Password for your PyPI user or an access token
-    required: false
-    default: ${{ secrets.PYPI_TOKEN }} || exit 1
+    required: true
   dry-run:
     description: Upload distributions to TestPyPI
     required: false
@@ -18,7 +17,6 @@ inputs:
   repository-url:
     description: The repository URL to use
     required: false
-    default: https://upload.pypi.org/legacy/
   packages-dir:
     description: The target directory for distribution
     required: false
@@ -43,7 +41,9 @@ inputs:
     default: 'false'
 branding:
   color: gray-dark
-  icon: anchor
+  icon: package
+
+outputs: { }
 
 # Controls when the workflow will run
 runs:
@@ -65,10 +65,10 @@ runs:
         fi
         echo "TWINE_EXTRA_ARGS=$TWINE_EXTRA_ARGS" >> $GITHUB_ENV
 
-        # todo: check if altering inputs work
         if [[ ${{ inputs.dry-run }} != "false" ]] ; then
-          ${{ inputs.token }}=${{ secrets.PYPI_TEST_TOKEN }} || exit 1
-          ${{ inputs.repository-url }}=https://test.pypi.org/simple/
+          echo "repository_url=https://test.pypi.org/simple/" >> $GITHUB_ENV
+        else
+          echo "repository_url=https://upload.pypi.org/legacy/" >> $GITHUB_ENV
         fi
       shell: bash
 
@@ -88,12 +88,11 @@ runs:
       shell: bash
 
     - name: Run twine check
-      if: ${{ inputs.verify-metadata }}
+      if: inputs.verify-metadata != false
       run: twine check ${{ inputs.packages-dir }}/*
       shell: bash
 
     - name: Print hash
-      # todo: verify shell behavior on windows OS
       if: inputs.print-hash != false || inputs.verbose != false
       run: python print_hash.py ${{ inputs.packages-dir }}
       shell: bash
@@ -102,6 +101,6 @@ runs:
       env:
         TWINE_USERNAME: ${{ inputs.user }}
         TWINE_PASSWORD: ${{ inputs.token }}
-        TWINE_REPOSITORY_URL: ${{ inputs.repository-url }}
+        TWINE_REPOSITORY_URL: ${{ env.repository_url }}
       run: twine upload ${{ env.TWINE_EXTRA_ARGS }} ${{ inputs.packages-dir }}/*.whl
       shell: bash
