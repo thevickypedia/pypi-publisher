@@ -1,3 +1,5 @@
+[![made-with-gha](https://img.shields.io/badge/Made%20with-Github_Actions-black?style=for-the-badge&logo=GitHub)][marketplace]
+
 # Pypi Publisher
 
 `pypi-publisher` is a GitHub action designed to upload python projects to Pypi repository.
@@ -26,7 +28,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: thevickypedia/pypi-publisher@v1
+        env:
+          token: ${{ secrets.PYPI_TOKEN }}
 ```
+
+### Allowed Inputs
+
+- `user` - PyPi username. Defaults to `__token__`
+- `token` - PyPi token. **Mandatory**
+- `test-upload` - Uploads to [TestPyPi repository][test-pypi]. Defaults to `false`
+- `dry-run` - Builds the distribution without uploading to PyPi. Defaults to `false`
+- `repository-url` - PyPi repository URL. Set based on `test-upload` flag.
+- `packages-dir` - The target directory for distribution. Defaults to `dist`
+- `verify-metadata` - Check metadata before uploading. Defaults to `true`
+- `skip-existing` - Avoids failing if distribution exists in package index.
+- `verbose` - Runs in verbose mode. Defaults to `false`
+- `print-hash` - Show hash values of distribution files. Defaults to `true`
 
 ## License & copyright
 
@@ -35,3 +52,5 @@ jobs:
 Licensed under the [MIT License][license]
 
 [license]: https://github.com/thevickypedia/pypi-publish/blob/main/LICENSE
+[test-pypi]: https://test.pypi.org
+[marketplace]: https://github.com/marketplace/actions/pypi-publisher

@@ -1,5 +1,6 @@
+---
 name: pypi-publisher
-description: GitHub action to upload Python distribution packages to PyPI
+description: Lightweight composite action to upload Python distribution packages to PyPI
 inputs:
   user:
     description: PyPI user
@@ -8,8 +9,12 @@ inputs:
   token:
     description: Password for your PyPI user or an access token
     required: true
-  dry-run:
+  test-upload:
     description: Upload distributions to TestPyPI
+    required: false
+    default: 'false'
+  dry-run:
+    description: Builds the distribution without uploading to PyPi
     required: false
     default: 'false'
   repository-url:
@@ -34,7 +39,7 @@ inputs:
     required: false
     default: 'false'
   print-hash:
-    description: Show hash values of files to be uploaded
+    description: Show hash values of distribution files
     required: false
     default: 'true'
 branding:
@@ -62,7 +67,7 @@ runs:
         fi
         echo "TWINE_EXTRA_ARGS=$TWINE_EXTRA_ARGS" >> $GITHUB_ENV
 
-        if [[ ${{ inputs.dry-run }} != "false" ]] ; then
+        if [[ ${{ inputs.test-upload }} == "true" ]] ; then
           echo "repository_url=https://test.pypi.org/simple/" >> $GITHUB_ENV
         else
           echo "repository_url=https://upload.pypi.org/legacy/" >> $GITHUB_ENV
@@ -85,7 +90,7 @@ runs:
       shell: bash
 
     - name: Run twine check
-      if: inputs.verify-metadata != false
+      if: inputs.verify-metadata != false || inputs.dry-run != false
       run: twine check ${{ inputs.packages-dir }}/*
       shell: bash
 
@@ -134,6 +139,7 @@ runs:
       shell: bash
 
     - name: Upload to pypi
+      if: inputs.dry-run != false
       env:
         TWINE_USERNAME: ${{ inputs.user }}
         TWINE_PASSWORD: ${{ inputs.token }}
