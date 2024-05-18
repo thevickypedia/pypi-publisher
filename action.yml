@@ -38,7 +38,7 @@ inputs:
   print-hash:
     description: Show hash values of files to be uploaded
     required: false
-    default: 'false'
+    default: 'true'
 branding:
   color: gray-dark
   icon: package
@@ -92,7 +92,7 @@ runs:
       run: twine check ${{ inputs.packages-dir }}/*
       shell: bash
 
-    - name: Print hash
+    - name: Get distribution hash
       if: inputs.print-hash != false || inputs.verbose != false
       run: |
         import hashlib
@@ -102,15 +102,14 @@ runs:
         distro = "${{ inputs.packages-dir }}"
         packages_dir = pathlib.Path(distro).resolve().absolute()
 
-        print('Showing hash values of files to be uploaded:')
+        output = '## Hash values of files uploaded:\n'
 
         for file_object in packages_dir.iterdir():
             sha256 = hashlib.sha256()
             md5 = hashlib.md5()  # noqa: S324; only use for reference
             blake2_256 = hashlib.blake2b(digest_size=256 // 8)
 
-            print(file_object)
-            print('')
+            output += f"### {file_object.name}\n"
 
             content = file_object.read_bytes()
 
@@ -118,11 +117,24 @@ runs:
             md5.update(content)
             blake2_256.update(content)
 
-            print(f'SHA256: {sha256.hexdigest()}')
-            print(f'MD5: {md5.hexdigest()}')
-            print(f'BLAKE2-256: {blake2_256.hexdigest()}')
-            print('')
+            output += f'**SHA256** - {sha256.hexdigest()}\n'
+            output += f'**MD5** - {md5.hexdigest()}\n'
+            output += f'**BLAKE2-256** - {blake2_256.hexdigest()}\n'
+            output += '\n\n'
+
+        with open("hash_summary", "w") as file:
+            file.write(output)
       shell: python
+
+    - name: Print hash
+      if: inputs.print-hash != false || inputs.verbose != false
+      run: |
+        if [ ! -f "hash_summary" ]; then
+          echo "::warning title=Hash Summary::Summary file is missing"
+          exit 0
+        fi
+        cat hash_summary > $GITHUB_STEP_SUMMARY
+      shell: bash
 
     - name: Upload to pypi
       env:
