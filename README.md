@@ -1,5 +1,7 @@
 [![made-with-gha](https://img.shields.io/badge/Made%20with-Github_Actions-black?style=for-the-badge&logo=GitHub)][marketplace]
 
+[![pages](https://github.com/thevickypedia/none-shall-pass/actions/workflows/pages/pages-build-deployment/badge.svg)][pages]
+
 # Pypi Publisher
 
 `pypi-publisher` is a GitHub action designed to upload python projects to Pypi repository.
@@ -27,7 +29,7 @@ jobs:
   pypi-publisher:
     runs-on: ubuntu-latest
     steps:
-      - uses: thevickypedia/pypi-publisher@v1
+      - uses: thevickypedia/pypi-publisher@v2
         env:
           token: ${{ secrets.PYPI_TOKEN }}
 ```
@@ -51,6 +53,7 @@ jobs:
 
 Licensed under the [MIT License][license]
 
+[pages]: https://thevickypedia.github.io/pypi-publisher/
 [license]: https://github.com/thevickypedia/pypi-publish/blob/main/LICENSE
 [test-pypi]: https://test.pypi.org
 [marketplace]: https://github.com/marketplace/actions/pypi-publisher
