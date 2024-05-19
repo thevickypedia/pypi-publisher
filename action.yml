@@ -102,7 +102,6 @@ runs:
         fi
         echo "architecture=$architecture" >> $GITHUB_ENV
         echo "os_name=$os_name" >> $GITHUB_ENV
-        echo "::notice title=Runner Platform::$os_name-$architecture"
       shell: bash
 
     - name: Setup Arguments
@@ -136,6 +135,8 @@ runs:
             echo "::warning title=Command404::'python' could not be found, using 'setup-python'"
             echo "setup_python=true" >> $GITHUB_ENV
           else
+            pyversion=$(python -V)
+            echo "::notice title=Python Source::Using '$pyversion' from ${{ env.os_name }}-${{ env.architecture }}"
             echo "setup_python=false" >> $GITHUB_ENV
           fi
         fi
