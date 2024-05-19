@@ -42,6 +42,10 @@ inputs:
     description: Show hash values of distribution files
     required: false
     default: 'true'
+  setup-python:
+    description: Use setup python to load python env.
+    required: false
+    default: 'false'
 branding:
   color: gray-dark
   icon: package
@@ -56,25 +60,89 @@ runs:
       with:
         fetch-depth: 0
 
+    - name: Detect OS and Architecture
+      run: |
+        # NOTE: `uname -m` is more accurate and universal than `arch`
+        # See https://en.wikipedia.org/wiki/Uname
+        unamem="$(uname -m)"
+        case $unamem in
+        *aarch64*|arm64)
+            architecture="arm64";;
+        *64*)
+            architecture="amd64";;
+        *86*)
+            architecture="386";;
+        *armv5*)
+            architecture="armv5";;
+        *armv6*)
+            architecture="armv6";;
+        *armv7*)
+            architecture="armv7";;
+        *)
+            echo "Unknown architecture: $unamem"
+            ;;
+        esac
+
+        unameu="$(tr '[:lower:]' '[:upper:]' <<<$(uname))"
+        if [[ $unameu == *DARWIN* ]]; then
+            os_name="darwin"
+        elif [[ $unameu == *LINUX* ]]; then
+            os_name="linux"
+        elif [[ $unameu == *FREEBSD* ]]; then
+            os_name="freebsd"
+        elif [[ $unameu == *NETBSD* ]]; then
+            os_name="netbsd"
+        elif [[ $unameu == *OPENBSD* ]]; then
+            os_name="openbsd"
+        elif [[ $unameu == *WIN* || $unameu == MSYS* ]]; then
+            # Should catch cygwin
+            os_name="windows"
+        else
+            echo "Unknown OS: $(uname)"
+        fi
+        echo "architecture=$architecture" >> $GITHUB_ENV
+        echo "os_name=$os_name" >> $GITHUB_ENV
+        echo "::notice title=Runner Platform::$os_name-$architecture"
+      shell: bash
+
     - name: Setup Arguments
       run: |
         TWINE_EXTRA_ARGS=--disable-progress-bar
-        if [[ ${{ inputs.skip-existing }} != "false" ]] ; then
+        if [[ ${{ inputs.skip-existing }} != "false" ]]; then
           TWINE_EXTRA_ARGS="${TWINE_EXTRA_ARGS} --skip-existing"
         fi
-        if [[ ${{ inputs.verbose }} != "false" ]] ; then
+
+        if [[ ${{ inputs.verbose }} != "false" ]]; then
           TWINE_EXTRA_ARGS="--verbose $TWINE_EXTRA_ARGS"
         fi
         echo "TWINE_EXTRA_ARGS=$TWINE_EXTRA_ARGS" >> $GITHUB_ENV
 
-        if [[ ${{ inputs.test-upload }} == "true" ]] ; then
+        if [[ ${{ inputs.test-upload }} == "true" ]]; then
           echo "repository_url=https://test.pypi.org/simple/" >> $GITHUB_ENV
         else
           echo "repository_url=https://upload.pypi.org/legacy/" >> $GITHUB_ENV
         fi
+
+        if [[ ${{ inputs.setup-python }} == "true" ]]; then
+          if [[ ${{ env.os_name }} == "darwin" ]]; then
+            # Discussion: https://github.com/orgs/community/discussions/26239
+            # Issue: https://github.com/actions/setup-python/issues/792
+            # Fix: https://github.com/actions/setup-python/pull/708
+            echo "::warning title=Unsupported Warning::setup-python may not run on macOS due to a misconfiguration"
+          fi
+          echo "setup_python=true" >> $GITHUB_ENV
+        else
+          if [[ ! $(command -v python) ]]; then
+            echo "::warning title=Command404::'python' could not be found, using 'setup-python'"
+            echo "setup_python=true" >> $GITHUB_ENV
+          else
+            echo "setup_python=false" >> $GITHUB_ENV
+          fi
+        fi
       shell: bash
 
     - name: Set up Python
+      if: env.setup_python == true
       uses: actions/setup-python@v5
       with:
         python-version: '3.9'
@@ -82,7 +150,7 @@ runs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install build twine
+        python -m pip install build twine
       shell: bash
 
     - name: Create packages
@@ -145,4 +213,8 @@ runs:
         TWINE_PASSWORD: ${{ inputs.token }}
         TWINE_REPOSITORY_URL: ${{ env.repository_url }}
       run: twine upload ${{ env.TWINE_EXTRA_ARGS }} ${{ inputs.packages-dir }}/*.whl
+      shell: bash
+
+    - name: Cleanup
+      run: rm -rf ${{ inputs.packages-dir }} *.egg-info
       shell: bash
