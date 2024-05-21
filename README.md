@@ -2,7 +2,7 @@
 
 [![pages](https://github.com/thevickypedia/none-shall-pass/actions/workflows/pages/pages-build-deployment/badge.svg)][pages]
 
-# Pypi Publisher
+# PyPi Publisher
 
 `pypi-publisher` is a GitHub action designed to upload python projects to Pypi repository.
 
@@ -11,6 +11,7 @@
 #### Add `pypi-publisher` action to your build workflow
 
 - In your GitHub repository, select the Actions tab and either add or edit a workflow.
+- Navigate to `pypi-publisher` in [Marketplace][marketplace].
 - Copy and paste the yaml into your workflow.
 
 **[OR]**
@@ -18,7 +19,7 @@
 Copy & paste the following workflow definition into your project `.github/workflows/pypi-publish.yml`
 
 ```yaml
-name: Pypi Publisher
+name: PyPi Publisher
 
 on:
   workflow_dispatch:
@@ -29,7 +30,7 @@ jobs:
   pypi-publisher:
     runs-on: ubuntu-latest
     steps:
-      - uses: thevickypedia/pypi-publisher@v2
+      - uses: thevickypedia/pypi-publisher@v3
         env:
           token: ${{ secrets.PYPI_TOKEN }}
 ```
