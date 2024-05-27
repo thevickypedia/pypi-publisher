@@ -47,8 +47,9 @@ jobs:
 - `skip-existing` - Avoids failing if distribution exists in package index.
 - `verbose` - Runs in verbose mode. Defaults to `false`
 - `print-hash` - Show hash values of distribution files. Defaults to `true`
-- `setup-python` - Uses the GH action `setup-python`. Defaults to `false`,
+- `setup-python` - Uses the GH action `setup-python`. Defaults to `false`
 but gets overridden dynamically based on `python` command's availability.
+- `python-version` - Python version for `setup-python`. Defaults to `3.9`
 
 ## License & copyright
 

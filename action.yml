@@ -46,6 +46,10 @@ inputs:
     description: Use setup python to load python env.
     required: false
     default: 'false'
+  python-version:
+    description: Python version to use.
+    required: false
+    default: '3.9'
 branding:
   color: gray-dark
   icon: package
@@ -111,7 +115,7 @@ runs:
           TWINE_EXTRA_ARGS="${TWINE_EXTRA_ARGS} --skip-existing"
         fi
 
-        if [[ ${{ inputs.verbose }} != "false" ]]; then
+        if [[ ${{ inputs.verbose }} != "false" ]] || [ "${{ env.RUNNER_DEBUG }}" == "1" ]; then
           TWINE_EXTRA_ARGS="--verbose $TWINE_EXTRA_ARGS"
         fi
         echo "TWINE_EXTRA_ARGS=$TWINE_EXTRA_ARGS" >> $GITHUB_ENV
@@ -120,6 +124,10 @@ runs:
           echo "repository_url=https://test.pypi.org/simple/" >> $GITHUB_ENV
         else
           echo "repository_url=https://upload.pypi.org/legacy/" >> $GITHUB_ENV
+        fi
+
+        if ! [[ ${{ env.token }} ]]; then
+          echo "token=${{ inputs.token }}" >> $GITHUB_ENV
         fi
 
         if [[ ${{ inputs.setup-python }} == "true" ]]; then
@@ -146,7 +154,7 @@ runs:
       if: env.setup_python == true
       uses: actions/setup-python@v5
       with:
-        python-version: '3.9'
+        python-version: ${{ inputs.python-version }}
 
     - name: Install dependencies
       run: |
@@ -211,7 +219,7 @@ runs:
       if: inputs.dry-run != false
       env:
         TWINE_USERNAME: ${{ inputs.user }}
-        TWINE_PASSWORD: ${{ inputs.token }}
+        TWINE_PASSWORD: ${{ env.token }}
         TWINE_REPOSITORY_URL: ${{ env.repository_url }}
       run: twine upload ${{ env.TWINE_EXTRA_ARGS }} ${{ inputs.packages-dir }}/*.whl
       shell: bash
