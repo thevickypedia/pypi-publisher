@@ -33,23 +33,34 @@ jobs:
       - uses: thevickypedia/pypi-publisher@v3
         env:
           token: ${{ secrets.PYPI_TOKEN }}
+        with:
+          skip-existing: true
 ```
 
 ### Allowed Inputs
 
-- `user` - PyPi username. Defaults to `__token__`
-- `token` - PyPi token. **Mandatory**
-- `test-upload` - Uploads to [TestPyPi repository][test-pypi]. Defaults to `false`
-- `dry-run` - Builds the distribution without uploading to PyPi. Defaults to `false`
-- `repository-url` - PyPi repository URL. Set based on `test-upload` flag.
-- `packages-dir` - The target directory for distribution. Defaults to `dist`
-- `verify-metadata` - Check metadata before uploading. Defaults to `true`
-- `skip-existing` - Avoids failing if distribution exists in package index.
-- `verbose` - Runs in verbose mode. Defaults to `false`
-- `print-hash` - Show hash values of distribution files. Defaults to `true`
-- `setup-python` - Uses the GH action `setup-python`. Defaults to `false`
-but gets overridden dynamically based on `python` command's availability.
-- `python-version` - Python version for `setup-python`. Defaults to `3.9`
+| Parameter         | Description                                             | Default             |
+|-------------------|---------------------------------------------------------|---------------------|
+| `user`            | PyPi username.                                          | `__token__`         |
+| `token`           | PyPi token. **[Mandatory]**                             | **NA**              |
+| `test-upload`     | Uploads to [TestPyPi][test-pypi] repository.            | `false`             |
+| `dry-run`         | Builds the distribution without uploading to PyPi.      | `false`             |
+| `repository-url`  | PyPi repository URL.                                    | [upload.pypi.org]** |
+| `packages-dir`    | The target directory for distribution.                  | `dist`              |
+| `verify-metadata` | Check metadata before uploading.                        | `true`              |
+| `skip-existing`   | Avoids failing if distribution exists in package index. | `true`              |
+| `verbose`         | Runs in verbose mode.                                   | `false`             |
+| `print-hash`      | Show hash values of distribution files.                 | `true`              |
+| `setup-python`    | Uses the GH action `setup-python`.                      | `false`**           |
+| `python-version`  | Python version for `setup-python`.                      | `3.9`               |
+
+**Notes**
+
+>- `repository-url` defaults to [upload.pypi.org], but it can change dynamically based on the `test-upload` flag.
+>- `setup-python` defaults to `false`, but it can change dynamically based on whether `python` is installed in the runner.
+>- `python-version` will be used only when `setup-python` flag is set to `true`, otherwise the default `python` in the runner takes precedence.
+
+> Only `user` and `token` can be passed as `env` whilst, rest of the parameters should be passed using `with`
 
 ## License & copyright
 
@@ -60,4 +71,5 @@ Licensed under the [MIT License][license]
 [pages]: https://thevickypedia.github.io/pypi-publisher/
 [license]: https://github.com/thevickypedia/pypi-publish/blob/main/LICENSE
 [test-pypi]: https://test.pypi.org
+[upload.pypi.org]: https://upload.pypi.org/legacy/
 [marketplace]: https://github.com/marketplace/actions/pypi-publisher

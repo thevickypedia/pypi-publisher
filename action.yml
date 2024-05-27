@@ -2,228 +2,232 @@
 name: pypi-publisher
 description: Lightweight composite action to upload Python distribution packages to PyPI
 inputs:
-  user:
-    description: PyPI user
-    required: false
-    default: __token__
-  token:
-    description: Password for your PyPI user or an access token
-    required: true
-  test-upload:
-    description: Upload distributions to TestPyPI
-    required: false
-    default: 'false'
-  dry-run:
-    description: Builds the distribution without uploading to PyPi
-    required: false
-    default: 'false'
-  repository-url:
-    description: The repository URL to use
-    required: false
-  packages-dir:
-    description: The target directory for distribution
-    required: false
-    default: dist
-  verify-metadata:
-    description: Check metadata before uploading
-    required: false
-    default: 'true'
-  skip-existing:
-    description: >-
-      Do not fail if a Python package distribution
-      exists in the target package index
-    required: false
-    default: 'false'
-  verbose:
-    description: Show verbose output.
-    required: false
-    default: 'false'
-  print-hash:
-    description: Show hash values of distribution files
-    required: false
-    default: 'true'
-  setup-python:
-    description: Use setup python to load python env.
-    required: false
-    default: 'false'
-  python-version:
-    description: Python version to use.
-    required: false
-    default: '3.9'
+    user:
+        description: PyPI user
+        required: false
+        default: __token__
+    token:
+        description: Password for your PyPI user or an access token
+        required: true
+    test-upload:
+        description: Upload distributions to TestPyPI
+        required: false
+        default: 'false'
+    dry-run:
+        description: Builds the distribution without uploading to PyPi
+        required: false
+        default: 'false'
+    repository-url:
+        description: The repository URL to use
+        required: false
+    packages-dir:
+        description: The target directory for distribution
+        required: false
+        default: dist
+    verify-metadata:
+        description: Check metadata before uploading
+        required: false
+        default: 'true'
+    skip-existing:
+        description: >-
+            Do not fail if a Python package distribution
+            exists in the target package index
+        required: false
+        default: 'false'
+    verbose:
+        description: Show verbose output.
+        required: false
+        default: 'false'
+    print-hash:
+        description: Show hash values of distribution files
+        required: false
+        default: 'true'
+    setup-python:
+        description: Use setup python to load python env.
+        required: false
+        default: 'false'
+    python-version:
+        description: Python version to use.
+        required: false
+        default: '3.9'
 branding:
-  color: gray-dark
-  icon: package
+    color: gray-dark
+    icon: package
 
-outputs: { }
+outputs: {}
 
 runs:
-  using: composite
-  steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
+    using: composite
+    steps:
+        - name: Checkout Repository
+          uses: actions/checkout@v4
+          with:
+              fetch-depth: 0
 
-    - name: Detect OS and Architecture
-      run: |
-        # NOTE: `uname -m` is more accurate and universal than `arch`
-        # See https://en.wikipedia.org/wiki/Uname
-        unamem="$(uname -m)"
-        case $unamem in
-        *aarch64*|arm64)
-            architecture="arm64";;
-        *64*)
-            architecture="amd64";;
-        *86*)
-            architecture="386";;
-        *armv5*)
-            architecture="armv5";;
-        *armv6*)
-            architecture="armv6";;
-        *armv7*)
-            architecture="armv7";;
-        *)
-            echo "Unknown architecture: $unamem"
-            ;;
-        esac
+        - name: Detect OS and Architecture
+          run: |
+              # NOTE: `uname -m` is more accurate and universal than `arch`
+              # See https://en.wikipedia.org/wiki/Uname
+              unamem="$(uname -m)"
+              case $unamem in
+              *aarch64*|arm64)
+                  architecture="arm64";;
+              *64*)
+                  architecture="amd64";;
+              *86*)
+                  architecture="386";;
+              *armv5*)
+                  architecture="armv5";;
+              *armv6*)
+                  architecture="armv6";;
+              *armv7*)
+                  architecture="armv7";;
+              *)
+                  echo "Unknown architecture: $unamem"
+                  ;;
+              esac
 
-        unameu="$(tr '[:lower:]' '[:upper:]' <<<$(uname))"
-        if [[ $unameu == *DARWIN* ]]; then
-            os_name="darwin"
-        elif [[ $unameu == *LINUX* ]]; then
-            os_name="linux"
-        elif [[ $unameu == *FREEBSD* ]]; then
-            os_name="freebsd"
-        elif [[ $unameu == *NETBSD* ]]; then
-            os_name="netbsd"
-        elif [[ $unameu == *OPENBSD* ]]; then
-            os_name="openbsd"
-        elif [[ $unameu == *WIN* || $unameu == MSYS* ]]; then
-            # Should catch cygwin
-            os_name="windows"
-        else
-            echo "Unknown OS: $(uname)"
-        fi
-        echo "architecture=$architecture" >> $GITHUB_ENV
-        echo "os_name=$os_name" >> $GITHUB_ENV
-      shell: bash
+              unameu="$(tr '[:lower:]' '[:upper:]' <<<$(uname))"
+              if [[ $unameu == *DARWIN* ]]; then
+                  os_name="darwin"
+              elif [[ $unameu == *LINUX* ]]; then
+                  os_name="linux"
+              elif [[ $unameu == *FREEBSD* ]]; then
+                  os_name="freebsd"
+              elif [[ $unameu == *NETBSD* ]]; then
+                  os_name="netbsd"
+              elif [[ $unameu == *OPENBSD* ]]; then
+                  os_name="openbsd"
+              elif [[ $unameu == *WIN* || $unameu == MSYS* ]]; then
+                  # Should catch cygwin
+                  os_name="windows"
+              else
+                  echo "Unknown OS: $(uname)"
+              fi
+              echo "architecture=$architecture" >> $GITHUB_ENV
+              echo "os_name=$os_name" >> $GITHUB_ENV
+          shell: bash
 
-    - name: Setup Arguments
-      run: |
-        TWINE_EXTRA_ARGS=--disable-progress-bar
-        if [[ ${{ inputs.skip-existing }} != "false" ]]; then
-          TWINE_EXTRA_ARGS="${TWINE_EXTRA_ARGS} --skip-existing"
-        fi
+        - name: Setup Arguments
+          run: |
+              TWINE_EXTRA_ARGS=--disable-progress-bar
+              if [[ ${{ inputs.skip-existing }} != "false" ]]; then
+                TWINE_EXTRA_ARGS="${TWINE_EXTRA_ARGS} --skip-existing"
+              fi
 
-        if [[ ${{ inputs.verbose }} != "false" ]] || [ "${{ env.RUNNER_DEBUG }}" == "1" ]; then
-          TWINE_EXTRA_ARGS="--verbose $TWINE_EXTRA_ARGS"
-        fi
-        echo "TWINE_EXTRA_ARGS=$TWINE_EXTRA_ARGS" >> $GITHUB_ENV
+              if [[ ${{ inputs.verbose }} != "false" ]] || [ "${{ env.RUNNER_DEBUG }}" == "1" ]; then
+                TWINE_EXTRA_ARGS="--verbose $TWINE_EXTRA_ARGS"
+              fi
+              echo "TWINE_EXTRA_ARGS=$TWINE_EXTRA_ARGS" >> $GITHUB_ENV
 
-        if [[ ${{ inputs.test-upload }} == "true" ]]; then
-          echo "repository_url=https://test.pypi.org/simple/" >> $GITHUB_ENV
-        else
-          echo "repository_url=https://upload.pypi.org/legacy/" >> $GITHUB_ENV
-        fi
+              if [[ ${{ inputs.test-upload }} == "true" ]]; then
+                echo "repository_url=https://test.pypi.org/simple/" >> $GITHUB_ENV
+              else
+                echo "repository_url=https://upload.pypi.org/legacy/" >> $GITHUB_ENV
+              fi
 
-        if ! [[ ${{ env.token }} ]]; then
-          echo "token=${{ inputs.token }}" >> $GITHUB_ENV
-        fi
+              if ! [[ ${{ env.user }} ]]; then
+                echo "user=${{ inputs.user }}" >> $GITHUB_ENV
+              fi
 
-        if [[ ${{ inputs.setup-python }} == "true" ]]; then
-          if [[ ${{ env.os_name }} == "darwin" ]]; then
-            # Discussion: https://github.com/orgs/community/discussions/26239
-            # Issue: https://github.com/actions/setup-python/issues/792
-            # Fix: https://github.com/actions/setup-python/pull/708
-            echo "::warning title=Unsupported Warning::setup-python may not run on macOS due to a misconfiguration"
-          fi
-          echo "setup_python=true" >> $GITHUB_ENV
-        else
-          if [[ ! $(command -v python) ]]; then
-            echo "::warning title=Command404::'python' could not be found, using 'setup-python'"
-            echo "setup_python=true" >> $GITHUB_ENV
-          else
-            pyversion=$(python -V)
-            echo "::notice title=Python Source::Using '$pyversion' from ${{ env.os_name }}-${{ env.architecture }}"
-            echo "setup_python=false" >> $GITHUB_ENV
-          fi
-        fi
-      shell: bash
+              if ! [[ ${{ env.token }} ]]; then
+                echo "token=${{ inputs.token }}" >> $GITHUB_ENV
+              fi
 
-    - name: Set up Python
-      if: env.setup_python == true
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ inputs.python-version }}
+              if [[ ${{ inputs.setup-python }} == "true" ]]; then
+                if [[ ${{ env.os_name }} == "darwin" ]]; then
+                  # Discussion: https://github.com/orgs/community/discussions/26239
+                  # Issue: https://github.com/actions/setup-python/issues/792
+                  # Fix: https://github.com/actions/setup-python/pull/708
+                  echo "::warning title=Unsupported Warning::setup-python may not run on macOS due to a misconfiguration"
+                fi
+                echo "setup_python=true" >> $GITHUB_ENV
+              else
+                if [[ ! $(command -v python) ]]; then
+                  echo "::warning title=Command404::'python' could not be found, using 'setup-python'"
+                  echo "setup_python=true" >> $GITHUB_ENV
+                else
+                  pyversion=$(python -V)
+                  echo "::notice title=Python Source::Using '$pyversion' from ${{ env.os_name }}-${{ env.architecture }}"
+                  echo "setup_python=false" >> $GITHUB_ENV
+                fi
+              fi
+          shell: bash
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        python -m pip install build twine
-      shell: bash
+        - name: Set up Python
+          if: env.setup_python == true
+          uses: actions/setup-python@v5
+          with:
+              python-version: ${{ inputs.python-version }}
 
-    - name: Create packages
-      run: python -m build
-      shell: bash
+        - name: Install dependencies
+          run: |
+              python -m pip install --upgrade pip
+              python -m pip install build twine
+          shell: bash
 
-    - name: Run twine check
-      if: inputs.verify-metadata != false || inputs.dry-run != false
-      run: twine check ${{ inputs.packages-dir }}/*
-      shell: bash
+        - name: Create packages
+          run: python -m build
+          shell: bash
 
-    - name: Get distribution hash
-      if: inputs.print-hash != false || inputs.verbose != false
-      run: |
-        import hashlib
-        import pathlib
-        import sys
+        - name: Run twine check
+          if: inputs.verify-metadata != false || inputs.dry-run != false
+          run: twine check ${{ inputs.packages-dir }}/*
+          shell: bash
 
-        distro = "${{ inputs.packages-dir }}"
-        packages_dir = pathlib.Path(distro).resolve().absolute()
+        - name: Get distribution hash
+          if: inputs.print-hash != false || inputs.verbose != false
+          run: |
+              import hashlib
+              import pathlib
+              import sys
 
-        output = '## Hash values for distributions:\n'
+              distro = "${{ inputs.packages-dir }}"
+              packages_dir = pathlib.Path(distro).resolve().absolute()
 
-        for file_object in packages_dir.iterdir():
-            sha256 = hashlib.sha256()
-            md5 = hashlib.md5()  # noqa: S324; only use for reference
-            blake2_256 = hashlib.blake2b(digest_size=256 // 8)
+              output = '## Hash values for distributions:\n'
 
-            output += f"### {file_object.name}\n"
+              for file_object in packages_dir.iterdir():
+                  sha256 = hashlib.sha256()
+                  md5 = hashlib.md5()  # noqa: S324; only use for reference
+                  blake2_256 = hashlib.blake2b(digest_size=256 // 8)
 
-            content = file_object.read_bytes()
+                  output += f"### {file_object.name}\n"
 
-            sha256.update(content)
-            md5.update(content)
-            blake2_256.update(content)
+                  content = file_object.read_bytes()
 
-            output += f'**SHA256** - {sha256.hexdigest()}\n'
-            output += f'**MD5** - {md5.hexdigest()}\n'
-            output += f'**BLAKE2-256** - {blake2_256.hexdigest()}\n'
-            output += '\n\n'
+                  sha256.update(content)
+                  md5.update(content)
+                  blake2_256.update(content)
 
-        with open("hash_summary", "w") as file:
-            file.write(output)
-      shell: python
+                  output += f'**SHA256** - {sha256.hexdigest()}\n'
+                  output += f'**MD5** - {md5.hexdigest()}\n'
+                  output += f'**BLAKE2-256** - {blake2_256.hexdigest()}\n'
+                  output += '\n\n'
 
-    - name: Print hash
-      if: inputs.print-hash != false || inputs.verbose != false
-      run: |
-        if [ ! -f "hash_summary" ]; then
-          echo "::warning title=Hash Summary::Summary file is missing"
-          exit 0
-        fi
-        cat hash_summary > $GITHUB_STEP_SUMMARY
-      shell: bash
+              with open("hash_summary", "w") as file:
+                  file.write(output)
+          shell: python
 
-    - name: Upload to pypi
-      if: inputs.dry-run != false
-      env:
-        TWINE_USERNAME: ${{ inputs.user }}
-        TWINE_PASSWORD: ${{ env.token }}
-        TWINE_REPOSITORY_URL: ${{ env.repository_url }}
-      run: twine upload ${{ env.TWINE_EXTRA_ARGS }} ${{ inputs.packages-dir }}/*.whl
-      shell: bash
+        - name: Print hash
+          if: inputs.print-hash != false || inputs.verbose != false
+          run: |
+              if [ ! -f "hash_summary" ]; then
+                echo "::warning title=Hash Summary::Summary file is missing"
+                exit 0
+              fi
+              cat hash_summary > $GITHUB_STEP_SUMMARY
+          shell: bash
 
-    - name: Cleanup
-      run: rm -rf ${{ inputs.packages-dir }} *.egg-info
-      shell: bash
+        - name: Upload to pypi
+          if: inputs.dry-run != false
+          env:
+              TWINE_USERNAME: ${{ env.user }}
+              TWINE_PASSWORD: ${{ env.token }}
+              TWINE_REPOSITORY_URL: ${{ env.repository_url }}
+          run: twine upload ${{ env.TWINE_EXTRA_ARGS }} ${{ inputs.packages-dir }}/*.whl
+          shell: bash
+
+        - name: Cleanup
+          run: rm -rf ${{ inputs.packages-dir }} *.egg-info
+          shell: bash
