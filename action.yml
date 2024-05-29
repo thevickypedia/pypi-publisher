@@ -111,31 +111,31 @@ runs:
         - name: Setup Arguments
           run: |
               TWINE_EXTRA_ARGS=--disable-progress-bar
-              if [[ ${{ inputs.skip-existing }} != "false" ]]; then
+              if [[ "${{ inputs.skip-existing }}" != "false" ]]; then
                 TWINE_EXTRA_ARGS="${TWINE_EXTRA_ARGS} --skip-existing"
               fi
 
-              if [[ ${{ inputs.verbose }} != "false" ]] || [ "${{ env.RUNNER_DEBUG }}" == "1" ]; then
+              if [[ "${{ inputs.verbose }}" != "false" ]] || [ "${{ env.RUNNER_DEBUG }}" == "1" ]; then
                 TWINE_EXTRA_ARGS="--verbose $TWINE_EXTRA_ARGS"
               fi
               echo "TWINE_EXTRA_ARGS=$TWINE_EXTRA_ARGS" >> $GITHUB_ENV
 
-              if [[ ${{ inputs.test-upload }} == "true" ]]; then
+              if [[ "${{ inputs.test-upload }}" == "true" ]]; then
                 echo "repository_url=https://test.pypi.org/simple/" >> $GITHUB_ENV
               else
                 echo "repository_url=https://upload.pypi.org/legacy/" >> $GITHUB_ENV
               fi
 
-              if ! [[ ${{ env.user }} ]]; then
+              if ! [[ "${{ env.user }}" ]]; then
                 echo "user=${{ inputs.user }}" >> $GITHUB_ENV
               fi
 
-              if ! [[ ${{ env.token }} ]]; then
+              if ! [[ "${{ env.token }}" ]]; then
                 echo "token=${{ inputs.token }}" >> $GITHUB_ENV
               fi
 
-              if [[ ${{ inputs.setup-python }} == "true" ]]; then
-                if [[ ${{ env.os_name }} == "darwin" ]]; then
+              if [[ "${{ inputs.setup-python }}" == "true" ]]; then
+                if [[ "${{ env.os_name }}" == "darwin" ]]; then
                   # Discussion: https://github.com/orgs/community/discussions/26239
                   # Issue: https://github.com/actions/setup-python/issues/792
                   # Fix: https://github.com/actions/setup-python/pull/708
