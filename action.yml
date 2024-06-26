@@ -155,7 +155,7 @@ runs:
           shell: bash
 
         - name: Set up Python
-          if: env.setup_python == true
+          if: env.setup_python == 'true'
           uses: actions/setup-python@v5
           with:
               python-version: ${{ inputs.python-version }}
@@ -171,12 +171,12 @@ runs:
           shell: bash
 
         - name: Run twine check
-          if: inputs.verify-metadata != false || inputs.dry-run != false
+          if: inputs.verify-metadata != 'false' || inputs.dry-run != 'false'
           run: twine check ${{ inputs.packages-dir }}/*
           shell: bash
 
         - name: Get distribution hash
-          if: inputs.print-hash != false || inputs.verbose != false
+          if: inputs.print-hash != 'false' || inputs.verbose != 'false'
           run: |
               import hashlib
               import pathlib
@@ -210,7 +210,7 @@ runs:
           shell: python
 
         - name: Print hash
-          if: inputs.print-hash != false || inputs.verbose != false
+          if: inputs.print-hash != 'false' || inputs.verbose != 'false'
           run: |
               if [ ! -f "hash_summary" ]; then
                 echo "::warning title=Hash Summary::Summary file is missing"
@@ -220,7 +220,7 @@ runs:
           shell: bash
 
         - name: Upload to pypi
-          if: inputs.dry-run != false
+          if: inputs.dry-run != 'true'
           env:
               TWINE_USERNAME: ${{ env.user }}
               TWINE_PASSWORD: ${{ env.token }}
