@@ -172,7 +172,7 @@ runs:
 
         - name: Run twine check
           if: inputs.verify-metadata != 'false' || inputs.dry-run != 'false'
-          run: twine check ${{ inputs.packages-dir }}/*
+          run: python -m twine check ${{ inputs.packages-dir }}/*
           shell: bash
 
         - name: Get distribution hash
@@ -225,7 +225,7 @@ runs:
               TWINE_USERNAME: ${{ env.user }}
               TWINE_PASSWORD: ${{ env.token }}
               TWINE_REPOSITORY_URL: ${{ env.repository_url }}
-          run: twine upload ${{ env.TWINE_EXTRA_ARGS }} ${{ inputs.packages-dir }}/*.whl
+          run: python -m twine upload ${{ env.TWINE_EXTRA_ARGS }} ${{ inputs.packages-dir }}/*.whl
           shell: bash
 
         - name: Cleanup
