@@ -148,13 +148,19 @@ runs:
                 fi
                 echo "setup_python=true" >> $GITHUB_ENV
               else
-                if [[ ! $(command -v python) ]]; then
+                if [[ ! $(command -v python) && ! $(command -v python3) ]]; then
                   echo "::warning title=Command404::'python' could not be found, using 'setup-python'"
                   echo "setup_python=true" >> $GITHUB_ENV
                 else
                   pyversion=$(python -V)
-                  echo "::notice title=Python Source::Using '$pyversion' from ${{ env.os_name }}-${{ env.architecture }}"
-                  echo "setup_python=false" >> $GITHUB_ENV
+                  pyversion_check=$(python -c "import sys; print(0) if sys.version_info >= (3, 8) else print(1)")
+                  if [ "$pyversion_check" -eq 0 ]; then
+                    echo "::notice title=PySource::Using '$pyversion' from ${{ env.os_name }}-${{ env.architecture }}"
+                    echo "setup_python=false" >> $GITHUB_ENV
+                  else
+                    echo "::warning title=PyVersionConflict::Python '$pyversion' is outdated, using 'setup-python'"
+                    echo "setup_python=false" >> $GITHUB_ENV
+                  fi
                 fi
               fi
           shell: bash
