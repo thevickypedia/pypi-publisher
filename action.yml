@@ -152,6 +152,12 @@ runs:
                   echo "::warning title=Command404::'python' could not be found, using 'setup-python'"
                   echo "setup_python=true" >> $GITHUB_ENV
                 else
+                  if [[ $(command -v python3) ]]; then
+                    alias python=$(which python3)
+                    echo "::notice title=PyCommand::'python' alias set to 'python3'"
+                  else
+                    echo "::debug title=PyCommand::'python' command is available"
+                  fi
                   pyversion=$(python -V)
                   pyversion_check=$(python -c "import sys; print(0) if sys.version_info >= (3, 8) else print(1)")
                   if [ "$pyversion_check" -eq 0 ]; then
